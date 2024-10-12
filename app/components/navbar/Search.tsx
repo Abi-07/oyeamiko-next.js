@@ -8,6 +8,8 @@ import { BiSearch } from 'react-icons/bi';
 import useSearchModal from '@/app/hooks/useSearchModal';
 import { differenceInDays } from 'date-fns';
 
+export const dynamic = 'force-dynamic';
+
 const Search = () => {
     const searchModal = useSearchModal();
     const params = useSearchParams();

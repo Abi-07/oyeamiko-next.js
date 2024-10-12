@@ -6,35 +6,36 @@ interface IParams {
     listingId?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
     request: Request,
     { params } : { params: IParams } 
 ) {
     const currentUser = await getCurrentUser();
 
-    if(!currentUser) {
+    if (!currentUser) {
         return NextResponse.error();
     }
 
     const { listingId } = params;
 
-    if(!listingId || typeof listingId !== 'string') {
-        throw new Error('Invalid ID');
+    if (!listingId || typeof listingId !== 'string') {
+        return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    let favouriteIds = [...(currentUser.favouriteIds || [])];
-    favouriteIds.push(listingId);
+    try {
+        const favouriteIds = [...(currentUser.favouriteIds || []), listingId];
+        const user = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: { favouriteIds }
+        });
 
-    const user = await prisma.user.update({
-        where: {
-            id: currentUser.id
-        },
-        data: {
-            favouriteIds: favouriteIds
-        }
-    });
-
-    return NextResponse.json(user);
+        return NextResponse.json(user);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    }
 }
 
 export async function DELETE(
@@ -43,27 +44,28 @@ export async function DELETE(
 ) {
     const currentUser = await getCurrentUser();
 
-    if(!currentUser) {
+    if (!currentUser) {
         return NextResponse.error();
     }
 
     const { listingId } = params;
 
-    if(!listingId || typeof listingId !== 'string') {
-        throw new Error('Invalid ID');
+    if (!listingId || typeof listingId !== 'string') {
+        return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    let favouriteIds = [...(currentUser.favouriteIds || [])];
-    favouriteIds = favouriteIds.filter((id) => id !== listingId);
+    try {
+        let favouriteIds = [...(currentUser.favouriteIds || [])];
+        favouriteIds = favouriteIds.filter(id => id !== listingId);
 
-    const user = await prisma.user.update({
-        where: {
-            id: currentUser.id
-        },
-        data: {
-            favouriteIds
-        }
-    });
+        const user = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: { favouriteIds }
+        });
 
-    return NextResponse.json(user);
+        return NextResponse.json(user);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    }
 }

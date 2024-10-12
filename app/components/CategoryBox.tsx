@@ -11,6 +11,8 @@ interface CategoryBoxProps {
     selected?: boolean;
 }
 
+export const dynamic = 'force-dynamic';
+
 const CategoryBox: React.FC<CategoryBoxProps> = ({ label, description, icon: Icon, selected }) => {
     const router = useRouter();
     const params = useSearchParams();
